@@ -1,0 +1,79 @@
+version: '3.9'
+
+networks:
+  mongo-cluster:
+    driver: bridge
+
+services:
+  config-server-01:
+    image: mongo:7
+    container_name: config-srv-1
+    command: ["mongod", "--configsvr", "--replSet", "rsConfig", "--port", "27019", "--bind_ip_all"]
+    ports:
+      - "27019:27019"
+    networks:
+      - mongo-cluster
+
+  config-server-02:
+    image: mongo:7
+    container_name: config-srv-2
+    command: ["mongod", "--configsvr", "--replSet", "rsConfig", "--port", "27019", "--bind_ip_all"]
+    networks:
+      - mongo-cluster
+
+  config-server-03:
+    image: mongo:7
+    container_name: config-srv-3
+    command: ["mongod", "--configsvr", "--replSet", "rsConfig", "--port", "27019", "--bind_ip_all"]
+    networks:
+      - mongo-cluster
+
+  shard-1:
+    image: mongo:7
+    container_name: shard-1
+    command: ["mongod", "--shardsvr", "--replSet", "rsShard1", "--port", "27018", "--bind_ip_all"]
+    ports:
+      - "27118:27018"
+    networks:
+      - mongo-cluster
+
+  shard-2:
+    image: mongo:7
+    container_name: shard-2
+    command: ["mongod", "--shardsvr", "--replSet", "rsShard2", "--port", "27018", "--bind_ip_all"]
+    ports:
+      - "27218:27018"
+    networks:
+      - mongo-cluster
+
+  shard-3:
+    image: mongo:7
+    container_name: shard-3
+    command: ["mongod", "--shardsvr", "--replSet", "rsShard3", "--port", "27018", "--bind_ip_all"]
+    ports:
+      - "27318:27018"
+    networks:
+      - mongo-cluster
+
+  mongos:
+    image: mongo:7
+    container_name: mongos
+    depends_on:
+      - config-server-01
+      - config-server-02
+      - config-server-03
+      - shard-1
+      - shard-2
+      - shard-3
+    command:
+      [
+        "mongos",
+        "--configdb", "rsConfig/config-server-01:27019,config-server-02:27019,config-server-03:27019",
+        "--bind_ip_all",
+        "--port", "27017"
+      ]
+    ports:
+      - "27017:27017"
+    networks:
+      - mongo-cluster
+
