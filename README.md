@@ -8,7 +8,7 @@ Implement a MongoDB sharded cluster with:
 
 ---
 
-# ⚙️ Cluster Architecture
+# Cluster Architecture
 - 3 Shard servers (rsShard1, rsShard2, rsShard3)
 - 3 Config servers (rsConfig)
 - 1 Mongos router
